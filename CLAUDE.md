@@ -32,6 +32,8 @@ supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 
 `@lovable.dev/vite-tanstack-config` already bundles TanStack Start, React, Tailwind, tsconfig paths, Cloudflare, and other plugins. **Do not add any of these manually** — duplicates will break the build. Only pass extra config through `defineConfig({ vite: { ... } })`.
 
+Lovable's config handles `VITE_*` env injection from `.env`. **Do not set `envDefine: false`** — it disables this and causes the Supabase client to fall back to `http://localhost`.
+
 ### Routing
 
 TanStack Router with file-based routes. **`src/routeTree.gen.ts` is auto-generated — never edit the route tree section.** The SSR type registration block at the bottom of the file is intentional and should be preserved. Routes live in `src/routes/`:
