@@ -56,8 +56,9 @@ export interface Question {
 export interface Flashcard {
   id: string;
   topic_id: string;
-  front: string;
-  back: string;
+  question: string;
+  answer: string;
+  created_at: string;
 }
 
 export interface UserProgress {
@@ -65,6 +66,8 @@ export interface UserProgress {
   user_id: string;
   topic_id: string;
   status: Status;
-  confidence_score: number;
+  confidence_level: number;
+  score: number;
+  visit_count: number;
   last_visited_at: string | null;
 }

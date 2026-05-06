@@ -6,10 +6,10 @@
 import { supabase } from "./supabase";
 
 export interface GradeAnswerResult {
-  marksAwarded: number;
-  good: string;
-  missing: string;
-  modelAnswerHint: string;
+  marks_awarded: number;
+  what_was_good: string;
+  what_was_missing: string;
+  model_answer_hint: string;
 }
 
 export async function gradeAnswer(
@@ -28,20 +28,20 @@ export async function gradeAnswer(
 export async function generateFlashcards(
   topicId: string,
   notesContent: string,
-): Promise<Array<{ front: string; back: string }>> {
+): Promise<Array<{ id: string; topic_id: string; question: string; answer: string; created_at: string }>> {
   const { data, error } = await supabase.functions.invoke("generateFlashcards", {
     body: { topicId, notesContent },
   });
   if (error) throw error;
-  return data as Array<{ front: string; back: string }>;
+  return data;
 }
 
 export async function suggestNextSession(
   userId: string,
-): Promise<{ topicId: string; reason: string }> {
+): Promise<{ topic_id: string; topic_name: string; reason: string }> {
   const { data, error } = await supabase.functions.invoke("suggestNextSession", {
     body: { userId },
   });
   if (error) throw error;
-  return data as { topicId: string; reason: string };
+  return data;
 }
