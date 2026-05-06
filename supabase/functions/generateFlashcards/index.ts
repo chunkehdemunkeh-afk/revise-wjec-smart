@@ -1,5 +1,4 @@
-// supabase/functions/generateFlashcards/index.ts
-// Anthropic-backed flashcard generator. Returns [{front, back}].
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const MODEL = "claude-sonnet-4-20250514";
 
@@ -14,19 +13,44 @@ interface Payload {
   notesContent: string;
 }
 
+interface FlashcardPair {
+  question: string;
+  answer: string;
+}
+
+function badRequest(message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status: 400,
+    headers: { ...corsHeaders, "content-type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { topicId, notesContent } = (await req.json()) as Payload;
+    const body = await req.json().catch(() => null);
+    if (!body) return badRequest("Request body must be valid JSON");
+
+    const { topicId, notesContent } = body as Payload;
+    if (!topicId) return badRequest("topicId is required");
+    if (!notesContent) return badRequest("notesContent is required");
 
     const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
 
-    const systemPrompt =
-      "You generate concise GCSE flashcards from revision notes. Reply ONLY with a JSON array of 6-10 objects of shape {\"front\": string, \"back\": string}. Front = a short question or prompt. Back = the concise answer.";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const userPrompt = `Topic id: ${topicId}\n\nNotes:\n${notesContent}\n\nReturn JSON array only.`;
+    const systemPrompt = `You generate concise WJEC GCSE-level flashcards from revision notes. \
+Reply ONLY with a JSON array of 8-10 objects with this exact shape:
+[{"question": string, "answer": string}]
+question: a short, clear exam-style prompt or keyword question. \
+answer: a concise, accurate answer (1-3 sentences max). \
+Cover the most important concepts from the notes. Return the JSON array only — no markdown, no prose.`;
+
+    const userPrompt = `Topic ID: ${topicId}\n\nRevision notes:\n${notesContent}\n\nReturn JSON array only.`;
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -49,12 +73,33 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await res.json();
-    const text: string = data.content?.[0]?.text ?? "[]";
-    const jsonStart = text.indexOf("[");
-    const jsonEnd = text.lastIndexOf("]");
-    const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+    const rawText: string = data.content?.[0]?.text ?? "[]";
+    const jsonStart = rawText.indexOf("[");
+    const jsonEnd = rawText.lastIndexOf("]");
+    if (jsonStart === -1 || jsonEnd === -1) throw new Error("Model returned no JSON array");
 
-    return new Response(JSON.stringify(parsed), {
+    const pairs: FlashcardPair[] = JSON.parse(rawText.slice(jsonStart, jsonEnd + 1));
+
+    if (!Array.isArray(pairs) || pairs.length === 0) {
+      throw new Error("Model returned an empty or invalid flashcard list");
+    }
+
+    const rows = pairs.map((p) => ({
+      id: crypto.randomUUID(),
+      topic_id: topicId,
+      question: p.question,
+      answer: p.answer,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: saved, error: dbError } = await supabase
+      .from("flashcards")
+      .insert(rows)
+      .select();
+
+    if (dbError) throw new Error(`Database error: ${dbError.message}`);
+
+    return new Response(JSON.stringify(saved), {
       headers: { ...corsHeaders, "content-type": "application/json" },
     });
   } catch (err) {

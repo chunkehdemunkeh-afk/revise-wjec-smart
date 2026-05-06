@@ -1,9 +1,4 @@
-// supabase/functions/suggestNextSession/index.ts
-// Reads user_progress (last_visited_at) and asks Claude to suggest the next topic.
-
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const MODEL = "claude-sonnet-4-20250514";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,65 +10,81 @@ interface Payload {
   userId: string;
 }
 
+function badRequest(message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status: 400,
+    headers: { ...corsHeaders, "content-type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { userId } = (await req.json()) as Payload;
-    const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
+    const body = await req.json().catch(() => null);
+    if (!body) return badRequest("Request body must be valid JSON");
+
+    const { userId } = body as Payload;
+    if (!userId) return badRequest("userId is required");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: progress } = await supabase
+    // Fetch user progress joined with topic name, sorted by weakest first
+    const { data: progress, error: progressError } = await supabase
       .from("user_progress")
-      .select("topic_id, status, confidence_score, last_visited_at, topics(name, priority, domain)")
+      .select("topic_id, confidence_level, last_visited_at, topics(name, priority)")
       .eq("user_id", userId)
-      .order("last_visited_at", { ascending: true })
-      .limit(50);
+      .order("confidence_level", { ascending: true })   // lowest confidence first
+      .order("last_visited_at", { ascending: true });   // then least recently visited
 
-    const { data: untouched } = await supabase
-      .from("topics")
-      .select("id, name, priority, domain")
-      .eq("priority", "CORE")
-      .limit(20);
+    if (progressError) throw new Error(`Database error: ${progressError.message}`);
 
-    const systemPrompt =
-      "You recommend the next GCSE revision topic. Reply ONLY with JSON {\"topicId\": string, \"reason\": string}. Prefer CORE topics with low confidence_score or that have not been visited recently.";
+    if (progress && progress.length > 0) {
+      const best = progress[0];
+      const topicName = (best.topics as { name: string; priority: string } | null)?.name ?? "Unknown topic";
+      const confidence = best.confidence_level ?? 0;
+      const lastVisited = best.last_visited_at
+        ? new Date(best.last_visited_at).toLocaleDateString("en-GB")
+        : "never";
 
-    const userPrompt = `User progress (oldest last_visited_at first):\n${JSON.stringify(progress ?? [])}\n\nUntouched CORE topics:\n${JSON.stringify(untouched ?? [])}\n\nReturn JSON only.`;
+      const reason =
+        confidence <= 2
+          ? `Your confidence on this topic is low (${confidence}/5) — it needs the most attention.`
+          : `You haven't visited this topic since ${lastVisited} and it's one of your weaker areas.`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 512,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Anthropic ${res.status}: ${text}`);
+      return new Response(
+        JSON.stringify({
+          topic_id: best.topic_id,
+          topic_name: topicName,
+          reason,
+        }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } },
+      );
     }
 
-    const data = await res.json();
-    const text: string = data.content?.[0]?.text ?? "{}";
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+    // No progress records — return the first CORE priority topic
+    const { data: coreTopic, error: coreError } = await supabase
+      .from("topics")
+      .select("id, name")
+      .eq("priority", "CORE")
+      .order("topic_number", { ascending: true })
+      .limit(1)
+      .single();
 
-    return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "content-type": "application/json" },
-    });
+    if (coreError || !coreTopic) {
+      throw new Error("No CORE topics found to suggest");
+    }
+
+    return new Response(
+      JSON.stringify({
+        topic_id: coreTopic.id,
+        topic_name: coreTopic.name,
+        reason: "You haven't started revising yet — this is the first core topic to tackle.",
+      }),
+      { headers: { ...corsHeaders, "content-type": "application/json" } },
+    );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
