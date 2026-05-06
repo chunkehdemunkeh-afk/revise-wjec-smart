@@ -3,22 +3,30 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useRouter,
   HeadContent,
   Scripts,
-  useRouter,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider, useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold">404</h1>
-        <p className="mt-2 text-muted-foreground">This page doesn't exist.</p>
-        <Link to="/" className="mt-6 inline-block text-primary underline">Home</Link>
+        <h1 className="text-7xl font-bold text-foreground">404</h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <div className="mt-6">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Go home
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -27,20 +35,33 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">Something went wrong</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-        <Button
-          className="mt-6"
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-        >
-          Try again
-        </Button>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          This page didn't load
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Something went wrong on our end. You can try refreshing or head back home.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Try again
+          </button>
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            Go home
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -50,23 +71,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "ReviseWJEC — GCSE revision for Maths & Biology" },
-      {
-        name: "description",
-        content:
-          "Focused WJEC GCSE revision for Maths 3300 and Biology. Notes, flashcards, past-paper questions and AI feedback.",
-      },
-      { property: "og:title", content: "ReviseWJEC" },
-      { property: "og:description", content: "WJEC GCSE revision — notes, flashcards, AI-graded questions." },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Lovable App" },
+      { name: "description", content: "Revise WJEC is a GCSE revision app for Maths and Biology, offering structured learning and AI-powered feedback." },
+      { name: "author", content: "Lovable" },
+      { property: "og:title", content: "Lovable App" },
+      { property: "og:description", content: "Revise WJEC is a GCSE revision app for Maths and Biology, offering structured learning and AI-powered feedback." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:description", content: "Revise WJEC is a GCSE revision app for Maths and Biology, offering structured learning and AI-powered feedback." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/91994364-94f2-467c-8058-2d0eb4a2d516/id-preview-33022903--40ec59bb-a511-45ce-9ac7-7be1cec29612.lovable.app-1778095678426.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/91994364-94f2-467c-8058-2d0eb4a2d516/id-preview-33022903--40ec59bb-a511-45ce-9ac7-7be1cec29612.lovable.app-1778095678426.png" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap",
+        href: appCss,
       },
     ],
   }),
@@ -78,11 +100,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-screen">
+      <body>
         {children}
         <Scripts />
       </body>
@@ -90,48 +112,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AppHeader() {
-  const { user, signOut } = useAuth();
-  return (
-    <header className="sticky top-0 z-30 border-b border-white/5 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <Link to="/" className="font-display text-lg font-bold tracking-tight">
-          Revise<span className="text-primary">WJEC</span>
-        </Link>
-        <nav className="flex items-center gap-3 text-sm">
-          {user ? (
-            <>
-              <Link to="/progress" className="text-muted-foreground hover:text-foreground" activeProps={{ className: "text-foreground" }}>
-                Progress
-              </Link>
-              <Button size="sm" variant="ghost" onClick={() => signOut()}>
-                Sign out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="text-muted-foreground hover:text-foreground">Sign in</Link>
-              <Link to="/signup">
-                <Button size="sm">Get started</Button>
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppHeader />
-        <main className="mx-auto max-w-3xl px-4 py-6 pb-24">
-          <Outlet />
-        </main>
-      </AuthProvider>
+      <Outlet />
     </QueryClientProvider>
   );
 }
