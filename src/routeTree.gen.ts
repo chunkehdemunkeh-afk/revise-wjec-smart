@@ -9,38 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedSubjectsSlugRouteImport } from './routes/_authenticated/subjects.$slug'
+import { Route as AuthenticatedTopicsTopicIdQuestionsRouteImport } from './routes/_authenticated/topics.$topicId.questions'
+import { Route as AuthenticatedTopicsTopicIdNotesRouteImport } from './routes/_authenticated/topics.$topicId.notes'
+import { Route as AuthenticatedTopicsTopicIdFlashcardsRouteImport } from './routes/_authenticated/topics.$topicId.flashcards'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSubjectsSlugRoute =
+  AuthenticatedSubjectsSlugRouteImport.update({
+    id: '/subjects/$slug',
+    path: '/subjects/$slug',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTopicsTopicIdQuestionsRoute =
+  AuthenticatedTopicsTopicIdQuestionsRouteImport.update({
+    id: '/topics/$topicId/questions',
+    path: '/topics/$topicId/questions',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTopicsTopicIdNotesRoute =
+  AuthenticatedTopicsTopicIdNotesRouteImport.update({
+    id: '/topics/$topicId/notes',
+    path: '/topics/$topicId/notes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTopicsTopicIdFlashcardsRoute =
+  AuthenticatedTopicsTopicIdFlashcardsRouteImport.update({
+    id: '/topics/$topicId/flashcards',
+    path: '/topics/$topicId/flashcards',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/subjects/$slug': typeof AuthenticatedSubjectsSlugRoute
+  '/topics/$topicId/flashcards': typeof AuthenticatedTopicsTopicIdFlashcardsRoute
+  '/topics/$topicId/notes': typeof AuthenticatedTopicsTopicIdNotesRoute
+  '/topics/$topicId/questions': typeof AuthenticatedTopicsTopicIdQuestionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/subjects/$slug': typeof AuthenticatedSubjectsSlugRoute
+  '/topics/$topicId/flashcards': typeof AuthenticatedTopicsTopicIdFlashcardsRoute
+  '/topics/$topicId/notes': typeof AuthenticatedTopicsTopicIdNotesRoute
+  '/topics/$topicId/questions': typeof AuthenticatedTopicsTopicIdQuestionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/subjects/$slug': typeof AuthenticatedSubjectsSlugRoute
+  '/_authenticated/topics/$topicId/flashcards': typeof AuthenticatedTopicsTopicIdFlashcardsRoute
+  '/_authenticated/topics/$topicId/notes': typeof AuthenticatedTopicsTopicIdNotesRoute
+  '/_authenticated/topics/$topicId/questions': typeof AuthenticatedTopicsTopicIdQuestionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/progress'
+    | '/subjects/$slug'
+    | '/topics/$topicId/flashcards'
+    | '/topics/$topicId/notes'
+    | '/topics/$topicId/questions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/progress'
+    | '/subjects/$slug'
+    | '/topics/$topicId/flashcards'
+    | '/topics/$topicId/notes'
+    | '/topics/$topicId/questions'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/signup'
+    | '/_authenticated/progress'
+    | '/_authenticated/subjects/$slug'
+    | '/_authenticated/topics/$topicId/flashcards'
+    | '/_authenticated/topics/$topicId/notes'
+    | '/_authenticated/topics/$topicId/questions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +171,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/subjects/$slug': {
+      id: '/_authenticated/subjects/$slug'
+      path: '/subjects/$slug'
+      fullPath: '/subjects/$slug'
+      preLoaderRoute: typeof AuthenticatedSubjectsSlugRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/topics/$topicId/questions': {
+      id: '/_authenticated/topics/$topicId/questions'
+      path: '/topics/$topicId/questions'
+      fullPath: '/topics/$topicId/questions'
+      preLoaderRoute: typeof AuthenticatedTopicsTopicIdQuestionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/topics/$topicId/notes': {
+      id: '/_authenticated/topics/$topicId/notes'
+      path: '/topics/$topicId/notes'
+      fullPath: '/topics/$topicId/notes'
+      preLoaderRoute: typeof AuthenticatedTopicsTopicIdNotesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/topics/$topicId/flashcards': {
+      id: '/_authenticated/topics/$topicId/flashcards'
+      path: '/topics/$topicId/flashcards'
+      fullPath: '/topics/$topicId/flashcards'
+      preLoaderRoute: typeof AuthenticatedTopicsTopicIdFlashcardsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedSubjectsSlugRoute: typeof AuthenticatedSubjectsSlugRoute
+  AuthenticatedTopicsTopicIdFlashcardsRoute: typeof AuthenticatedTopicsTopicIdFlashcardsRoute
+  AuthenticatedTopicsTopicIdNotesRoute: typeof AuthenticatedTopicsTopicIdNotesRoute
+  AuthenticatedTopicsTopicIdQuestionsRoute: typeof AuthenticatedTopicsTopicIdQuestionsRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedSubjectsSlugRoute: AuthenticatedSubjectsSlugRoute,
+  AuthenticatedTopicsTopicIdFlashcardsRoute:
+    AuthenticatedTopicsTopicIdFlashcardsRoute,
+  AuthenticatedTopicsTopicIdNotesRoute: AuthenticatedTopicsTopicIdNotesRoute,
+  AuthenticatedTopicsTopicIdQuestionsRoute:
+    AuthenticatedTopicsTopicIdQuestionsRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
