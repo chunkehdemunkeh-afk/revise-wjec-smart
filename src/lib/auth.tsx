@@ -11,6 +11,15 @@ interface AuthCtx {
   signOut: () => Promise<void>;
 }
 
+const defaultCtx: AuthCtx = {
+  user: null,
+  session: null,
+  loading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+};
+
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -41,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: typeof window !== "undefined" ? window.location.origin : "" },
       });
       if (error) throw error;
     },
@@ -55,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useAuth must be inside AuthProvider");
-  return v;
+  // During SSR, the context won't be available — return a safe default
+  // so server-rendered pages don't crash.
+  return v ?? defaultCtx;
 }
