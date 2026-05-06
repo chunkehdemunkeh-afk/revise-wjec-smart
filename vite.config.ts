@@ -12,7 +12,4 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  // Disable Lovable's custom define-based env injection so Vite's native
-  // import.meta.env handling loads VITE_* vars from .env instead.
-  envDefine: false,
 });

@@ -34,7 +34,7 @@ supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 
 ### Routing
 
-TanStack Router with file-based routes. **`src/routeTree.gen.ts` is auto-generated — never edit it.** Routes live in `src/routes/`:
+TanStack Router with file-based routes. **`src/routeTree.gen.ts` is auto-generated — never edit the route tree section.** The SSR type registration block at the bottom of the file is intentional and should be preserved. Routes live in `src/routes/`:
 
 - `__root.tsx` — root layout; wraps everything in `AuthProvider` and renders `AppHeader`
 - `_authenticated.tsx` — layout that redirects unauthenticated users to `/login`
