@@ -40,7 +40,7 @@ function FlashcardsPage() {
         user_id: user.id,
         topic_id: topicId,
         status,
-        confidence_score: score,
+        confidence_level: score,
         last_visited_at: new Date().toISOString(),
       },
       { onConflict: "user_id,topic_id" },
