@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/progress")({
 function ProgressPage() {
   const { user } = useAuth();
   const [suggesting, setSuggesting] = useState(false);
-  const [suggestion, setSuggestion] = useState<{ topicId: string; reason: string } | null>(null);
+  const [suggestion, setSuggestion] = useState<{ topic_id: string; reason: string } | null>(null);
   const [suggErr, setSuggErr] = useState<string | null>(null);
 
   const { data = [] } = useQuery({
@@ -25,7 +25,7 @@ function ProgressPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("user_progress")
-        .select("topic_id, status, confidence_score, last_visited_at, topics(name, priority, domain)")
+        .select("topic_id, status, confidence_level, last_visited_at, topics(name, priority, domain)")
         .eq("user_id", user!.id);
       return data ?? [];
     },
@@ -40,7 +40,7 @@ function ProgressPage() {
     counts[r.status as keyof typeof counts] += 1;
   });
 
-  const weak = (data as any[]).filter((r) => r.confidence_score <= 1 && r.status !== "not_started");
+  const weak = (data as any[]).filter((r) => r.confidence_level <= 1 && r.status !== "not_started");
 
   async function getSuggestion() {
     if (!user) return;
@@ -98,7 +98,7 @@ function ProgressPage() {
           {suggestion ? (
             <>
               <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
-              <Link to="/topics/$topicId/notes" params={{ topicId: suggestion.topicId }}>
+              <Link to="/topics/$topicId/notes" params={{ topicId: suggestion.topic_id }}>
                 <Button size="sm">Open topic</Button>
               </Link>
             </>

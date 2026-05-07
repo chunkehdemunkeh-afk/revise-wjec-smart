@@ -118,12 +118,12 @@ function QuestionsPage() {
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Feedback</h3>
               <Badge className="border-transparent bg-primary text-primary-foreground">
-                {feedback.marksAwarded} / {q.mark_allocation}
+                {feedback.marks_awarded} / {q.mark_allocation}
               </Badge>
             </div>
-            <Section title="What was good" body={feedback.good} />
-            <Section title="What was missing" body={feedback.missing} />
-            <Section title="Model answer hint" body={feedback.modelAnswerHint} />
+            <Section title="What was good" body={feedback.what_was_good} />
+            <Section title="What was missing" body={feedback.what_was_missing} />
+            <Section title="Model answer hint" body={feedback.model_answer_hint} />
             <Button variant="secondary" className="w-full" onClick={next} disabled={i + 1 >= questions.length}>
               Next question
             </Button>

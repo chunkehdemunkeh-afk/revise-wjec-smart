@@ -40,7 +40,7 @@ function FlashcardsPage() {
         user_id: user.id,
         topic_id: topicId,
         status,
-        confidence_score: score,
+        confidence_level: score,
         last_visited_at: new Date().toISOString(),
       },
       { onConflict: "user_id,topic_id" },
@@ -111,7 +111,7 @@ function FlashcardsPage() {
                     {flipped ? "Answer" : "Question"}
                   </p>
                   <p className="text-xl font-medium leading-snug">
-                    {flipped ? card.back : card.front}
+                    {flipped ? card.answer : card.question}
                   </p>
                   {!flipped && (
                     <p className="mt-6 text-xs text-muted-foreground">Tap card to flip</p>
