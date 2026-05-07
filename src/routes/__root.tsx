@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 import appCss from "../styles.css?url";
 
@@ -119,8 +120,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
+        {!isSupabaseConfigured ? <MissingSupabaseConfig /> : <Outlet />}
       </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function MissingSupabaseConfig() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+      <section className="max-w-md text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">ReviseWJEC</p>
+        <h1 className="mt-3 text-2xl font-bold">Connection settings missing</h1>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          The published app does not currently have its Supabase URL and anon key available, so sign in and revision data cannot load yet.
+        </p>
+      </section>
+    </main>
   );
 }
