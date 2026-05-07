@@ -4,15 +4,24 @@ const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const anonKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 
-if (!url || !anonKey) {
-  throw new Error(
-    "Supabase config missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY) before publishing.",
-  );
-}
+export const isSupabaseConfigured = Boolean(url && anonKey);
 
-export const supabase = createClient(url, anonKey, {
-  auth: { persistSession: true, autoRefreshToken: true },
-});
+const missingConfigProxy = new Proxy(
+  {},
+  {
+    get() {
+      throw new Error(
+        "Supabase config missing. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Lovable before using auth or revision data.",
+      );
+    },
+  },
+);
+
+export const supabase = isSupabaseConfigured
+  ? createClient(url!, anonKey!, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    })
+  : (missingConfigProxy as ReturnType<typeof createClient>);
 
 export type Priority = "CORE" | "COMMON" | "MODERATE";
 export type Status = "not_started" | "in_progress" | "confident";
