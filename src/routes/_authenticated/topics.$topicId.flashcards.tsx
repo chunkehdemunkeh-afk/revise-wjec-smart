@@ -111,7 +111,7 @@ function FlashcardsPage() {
                     {flipped ? "Answer" : "Question"}
                   </p>
                   <p className="text-xl font-medium leading-snug">
-                    {flipped ? card.back : card.front}
+                    {flipped ? card.answer : card.question}
                   </p>
                   {!flipped && (
                     <p className="mt-6 text-xs text-muted-foreground">Tap card to flip</p>
