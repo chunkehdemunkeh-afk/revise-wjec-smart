@@ -73,6 +73,17 @@ All three live in `supabase/functions/` and run as Deno. Import Supabase JS from
 
 Dark-mode only (`<html class="dark">`). Design tokens in `src/styles.css`: background `#0F172A`, card `#1E293B`, primary teal `#14B8A6`. Priority badges: CORE = green (`#10B981`), COMMON = amber (`#F59E0B`), MODERATE = slate. shadcn/ui components are in `src/components/ui/`.
 
+## Deployment
+
+The app is deployed to Cloudflare Workers (free tier). To deploy after making changes:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+This builds from local code and pushes directly to Cloudflare — no GitHub involvement. `bun run build` also works if bun is installed (faster). The worker is named `tanstack-start-app` and the config is in `wrangler.jsonc`; after the build, wrangler uses the generated `dist/server/wrangler.json`.
+
 ## Environment
 
 Copy `.env.example` → `.env` and fill in:
