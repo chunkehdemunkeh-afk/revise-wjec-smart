@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { isSupabaseConfigured, supabase } from "./supabase";
 
 interface AuthCtx {
   user: User | null;
@@ -24,9 +24,10 @@ const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setLoading(false);
@@ -43,10 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     loading,
     signIn: async (email, password) => {
+      if (!isSupabaseConfigured) throw new Error("Supabase config missing in the published app.");
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
     },
     signUp: async (email, password) => {
+      if (!isSupabaseConfigured) throw new Error("Supabase config missing in the published app.");
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -55,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
     },
     signOut: async () => {
+      if (!isSupabaseConfigured) return;
       await supabase.auth.signOut();
     },
   };
